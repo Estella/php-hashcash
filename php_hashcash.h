@@ -20,7 +20,7 @@ typedef struct _php_hashcash_db {
   void * db;
 } php_hashcash_db;
 
-#define PHP_HASHCASH_DB_RES_NAME "Hascash Database"
+#define PHP_HASHCASH_DB_RES_NAME "Hashcash Database"
 
 
 #ifdef __cplusplus

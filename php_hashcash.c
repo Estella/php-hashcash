@@ -68,6 +68,13 @@ PHP_FUNCTION(hashcash_db_open)
   ZEND_REGISTER_RESOURCE(return_value, db_res, le_hashcash_db);
 }
 
+
+ZEND_BEGIN_ARG_INFO_EX(hashcash_db_in_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+    ZEND_ARG_INFO(0, db)
+    ZEND_ARG_INFO(0, token)
+    ZEND_ARG_INFO(0, period)
+ZEND_END_ARG_INFO()
+
 PHP_FUNCTION(hashcash_db_in)
 {
   // Declarations
@@ -106,6 +113,13 @@ PHP_FUNCTION(hashcash_db_in)
   }
 }
 
+
+ZEND_BEGIN_ARG_INFO_EX(hashcash_db_add_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+    ZEND_ARG_INFO(0, db)
+    ZEND_ARG_INFO(0, token)
+    ZEND_ARG_INFO(0, period)
+ZEND_END_ARG_INFO()
+
 PHP_FUNCTION(hashcash_db_add)
 {
   // Declarations
@@ -140,6 +154,11 @@ PHP_FUNCTION(hashcash_db_add)
   RETURN_TRUE;
 }
 
+
+ZEND_BEGIN_ARG_INFO_EX(hashcash_db_close_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+    ZEND_ARG_INFO(0, db)
+ZEND_END_ARG_INFO()
+
 PHP_FUNCTION(hashcash_db_close)
 {
   // Declarations
@@ -169,6 +188,48 @@ PHP_FUNCTION(hashcash_db_close)
   RETURN_TRUE;
 }
 
+
+ZEND_BEGIN_ARG_INFO_EX(hashcash_simple_mint_args, ZEND_SEND_BY_VAL, ZEND_RETURN_VALUE, 0)
+    ZEND_ARG_INFO(0, resource)
+    ZEND_ARG_INFO(0, bits)
+    ZEND_ARG_INFO(0, anon_period)
+    ZEND_ARG_INFO(0, ext)
+    ZEND_ARG_INFO(0, compress)
+ZEND_END_ARG_INFO()
+
+PHP_FUNCTION(hashcash_simple_mint)
+{
+  char * resource;
+  long resource_len;
+  long bits;
+  long anon_period;
+  char * ext;
+  long ext_len;
+  long compress;
+  char * stamp;
+  
+  // Parameters
+  if( zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "sllsl", 
+          &resource, &resource_len, &bits, &anon_period, &ext, &ext_len,
+          &compress) == FAILURE ) {
+    RETURN_FALSE;
+  }
+  
+  // Mint
+  const char * r = (const char *) resource;
+  unsigned b = (unsigned) bits;
+  stamp = hashcash_simple_mint(r, b, anon_period, ext, compress);
+  
+  if( !stamp ) {
+    RETURN_FALSE;
+  }
+  
+  char * estamp = estrdup(stamp);
+  free(stamp);
+  
+  RETURN_STRING(estamp, 0);
+}
+
 /* }}} ---------------------------------------------------------------------- */
 /* {{{ Module Hooks --------------------------------------------------------- */
 
@@ -182,27 +243,24 @@ static PHP_MINIT_FUNCTION(hashcash)
 
 static PHP_MINFO_FUNCTION(hashcash)
 {
-//  php_info_print_table_start();
-//  php_info_print_table_row(2, "Version", PHP_HASHCASH_VERSION);
-//  php_info_print_table_row(2, "Released", PHP_HASHCASH_RELEASE);
-//  php_info_print_table_row(2, "Authors", PHP_HASHCASH_AUTHORS);
-//  php_info_print_table_row(2, "Hashcash version", HASHCASH_VERSION);
-//  php_info_print_table_row(2, "Hashcash format version", HASHCASH_FORMAT_VERSION);
-//  php_info_print_table_end();
+  php_info_print_table_start();
+  php_info_print_table_row(2, "Version", PHP_HASHCASH_VERSION);
+  php_info_print_table_row(2, "Released", PHP_HASHCASH_RELEASE);
+  php_info_print_table_row(2, "Authors", PHP_HASHCASH_AUTHORS);
+  php_info_print_table_row(2, "Hashcash version", HASHCASH_VERSION);
+  php_info_print_table_row(2, "Hashcash format version", HASHCASH_FORMAT_VERSION);
+  php_info_print_table_end();
 }
 
 /* }}} ---------------------------------------------------------------------- */
 /* {{{ Function Entry ------------------------------------------------------- */
 
-PHP_FUNCTION(nofuckyou)
-{
-  
-}
 zend_function_entry hashcash_functions[] = {
 	PHP_FE(hashcash_db_open, hashcash_db_open_args)
-	PHP_FE(hashcash_db_in, NULL)
-	PHP_FE(hashcash_db_add, NULL)
-	PHP_FE(hashcash_db_close, NULL)
+	PHP_FE(hashcash_db_in, hashcash_db_in_args)
+	PHP_FE(hashcash_db_add, hashcash_db_add_args)
+	PHP_FE(hashcash_db_close, hashcash_db_close_args)
+  PHP_FE(hashcash_simple_mint, hashcash_simple_mint_args)
 };
 
 /* }}} ---------------------------------------------------------------------- */
