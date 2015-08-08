@@ -57,6 +57,7 @@ PHP_FUNCTION(hashcash_db_open)
   
   int ret = hashcash_db_open(db, (const char *) filename, &err);
   if( !ret ) {
+    free(db);
     hashcash_last_error = err;
     RETURN_FALSE;
   }
